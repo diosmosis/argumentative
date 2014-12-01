@@ -34,7 +34,7 @@ Header only and does no validation or fancy help output.
             std::cout << "found and parsed int value '" << value << "'." << std::endl;
         });
 
-        cli.parse(argv. argv + argc);
+        cli.parse(argv, argv + argc);
 
         return EXIT_SUCCESS;
     }
