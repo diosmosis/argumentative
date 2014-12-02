@@ -84,7 +84,8 @@ namespace argumentative
             // TODO: should use const string or something similar rather than creating new std::string instances
             std::string word(*i);
 
-            if (is_option(word)) {
+            // TODO: definitely ugly/inefficient code. need to fix.
+            if (is_long_option(word)) {
                 std::string option_str = strip_leading_dashes(word);
 
                 value = get_embedded_option_value(option_str);
@@ -92,6 +93,22 @@ namespace argumentative
                 option_metadata const* option_meta = _metadata.get_option(option_str);
                 if (!option_meta) {
                     throw invalid_option(word);
+                }
+
+                if (option_meta->is_value_required()
+                    && value.empty()
+                ) {
+                    value = get_next_word(i, _end);
+                }
+
+                entity_metadata = option_meta;
+            } else if (is_short_option(word)) {
+                std::string option_short_name = word.substr(1, 1);
+                value = word.substr(2);
+
+                option_metadata const* option_meta = _metadata.get_option(option_short_name);
+                if (!option_meta) {
+                    throw invalid_option(option_short_name);
                 }
 
                 if (option_meta->is_value_required()
@@ -120,9 +137,14 @@ namespace argumentative
             return i;
         }
 
-        bool is_option(std::string const& word) const
+        bool is_short_option(std::string const& word) const
         {
-            return !word.empty() && word[0] == '-';
+            return word.size() > 2 && word[0] == '-' && word[1] != '-';
+        }
+
+        bool is_long_option(std::string const& word) const
+        {
+            return word.size() > 2 && word[0] == '-' && word[1] == '-';
         }
 
         std::string strip_leading_dashes(std::string const& word) const
